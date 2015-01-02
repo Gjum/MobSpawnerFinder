@@ -1,0 +1,16 @@
+[
+{
+  "modid": "MobSpawnerFinder",
+  "name": "MobSpawner finder",
+  "description": "Find MobSpawners as you discover the world.",
+  "version": "0.1",
+  "mcversion": "1.8",
+  "url": "https://github.com/Gjum/MobSpawnerFinder",
+  "updateUrl": "https://github.com/Gjum/MobSpawnerFinder/releases/latest",
+  "authorList": ["gjum"],
+  "credits": "",
+  "logoFile": "",
+  "screenshots": [],
+  "dependencies": []
+}
+]
