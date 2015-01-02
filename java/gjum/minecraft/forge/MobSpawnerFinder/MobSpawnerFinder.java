@@ -18,11 +18,21 @@
 
 package gjum.minecraft.forge.MobSpawnerFinder;
 
+import net.minecraft.client.Minecraft;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.tileentity.TileEntityMobSpawner;
+import net.minecraft.util.BlockPos;
+import net.minecraft.util.ChatComponentText;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.FMLCommonHandler;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.Mod.EventHandler;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
+import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.relauncher.SideOnly;
+
+import java.util.LinkedList;
+import java.util.List;
 
 @Mod(modid = MobSpawnerFinder.MODID, name = MobSpawnerFinder.MODNAME, version = MobSpawnerFinder.VERSION, canBeDeactivated = true)
 public class MobSpawnerFinder {
@@ -31,14 +41,42 @@ public class MobSpawnerFinder {
     public static final String MODNAME = "MobSpawner finder";
     public static final String VERSION = "0.1";
 
+    static List<Object> foundSpawners = new LinkedList<Object>();
+
+    @SideOnly(Side.CLIENT)
     @EventHandler
     public void init(FMLInitializationEvent e) {
         // mob spawner finder
         MinecraftForge.EVENT_BUS.register(new ChunkWatchHandler());
 
         // key bindings
-        KeyBindings.init();
         FMLCommonHandler.instance().bus().register(new KeyInputHandler());
+    }
+
+    /**
+     * search in all loaded TileEntities for MobSpawners,
+     * when a new MobSpawner gets found, display its type and coordinates in chat.
+     * @param showKnown show already found spawners
+     */
+    public static void findSpawners(boolean showKnown) {
+        final Minecraft mc = Minecraft.getMinecraft();
+        for (Object o : mc.theWorld.loadedTileEntityList) {
+            if (o.getClass() == TileEntityMobSpawner.class) {
+                if (showKnown || !foundSpawners.contains(o)) {
+                    if (!showKnown) foundSpawners.add(o);
+
+                    // tell player about newly found spawner
+                    final TileEntityMobSpawner spawnerTileEntity = (TileEntityMobSpawner) o;
+                    final BlockPos spawnerPos = spawnerTileEntity.getPos();
+                    NBTTagCompound nbt = new NBTTagCompound();
+                    spawnerTileEntity.writeToNBT(nbt);
+                    final String entityId = nbt.getString("EntityId");
+                    mc.thePlayer.addChatMessage(new ChatComponentText(String.format(
+                            "%s spawner at %d %d",
+                            entityId, spawnerPos.getX(), spawnerPos.getZ())));
+                }
+            }
+        }
     }
 
 }

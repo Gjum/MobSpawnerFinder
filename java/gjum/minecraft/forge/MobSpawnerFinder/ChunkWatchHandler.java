@@ -18,52 +18,31 @@
 
 package gjum.minecraft.forge.MobSpawnerFinder;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.tileentity.TileEntityMobSpawner;
-import net.minecraft.util.BlockPos;
-import net.minecraft.util.ChatComponentText;
-import net.minecraftforge.event.world.ChunkWatchEvent;
+import net.minecraftforge.event.world.ChunkEvent;
 import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-
-import java.util.LinkedList;
-import java.util.List;
+import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.relauncher.SideOnly;
 
 public class ChunkWatchHandler {
-
-    private static List<Object> foundSpawners = new LinkedList<Object>();
 
     /**
      * When the world loads, clear list of known MobSpawners,
      * so when loading the same world again, the MobSpawners show up again.
      */
+    @SideOnly(Side.CLIENT)
     @SubscribeEvent
     public void on(WorldEvent.Load e) {
-        foundSpawners.clear();
+        MobSpawnerFinder.foundSpawners.clear();
     }
 
     /**
-     * When a new chunk gets loaded, search in all loaded TileEntities for MobSpawners,
-     * when a new MobSpawner gets found, display its type and coordinates in chat.
+     * When a new chunk gets loaded, search for MobSpawners
      */
+    @SideOnly(Side.CLIENT)
     @SubscribeEvent
-    public void on(ChunkWatchEvent.Watch e) {
-        final Minecraft mc = Minecraft.getMinecraft();
-        for (Object o : mc.theWorld.loadedTileEntityList) {
-            if (o.getClass() == TileEntityMobSpawner.class) {
-                if (!foundSpawners.contains(o)) {
-                    foundSpawners.add(o);
-                    // tell player about newly found spawner
-                    final TileEntityMobSpawner spawnerTileEntity = (TileEntityMobSpawner) o;
-                    final BlockPos spawnerPos = spawnerTileEntity.getPos();
-                    NBTTagCompound nbt = new NBTTagCompound();
-                    spawnerTileEntity.writeToNBT(nbt);
-                    final String entityId = nbt.getString("EntityId");
-                    mc.thePlayer.addChatMessage(new ChatComponentText(entityId + "-Spawner at " + spawnerPos));
-                }
-            }
-        }
+    public void on(ChunkEvent.Load e) {
+        MobSpawnerFinder.findSpawners(true);
     }
 
 }

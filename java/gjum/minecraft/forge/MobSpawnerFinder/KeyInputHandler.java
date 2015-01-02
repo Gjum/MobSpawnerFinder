@@ -18,31 +18,28 @@
 
 package gjum.minecraft.forge.MobSpawnerFinder;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.tileentity.TileEntityMobSpawner;
-import net.minecraft.util.BlockPos;
-import net.minecraft.util.ChatComponentText;
+import net.minecraft.client.settings.KeyBinding;
+import net.minecraftforge.fml.client.registry.ClientRegistry;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.InputEvent;
+import org.lwjgl.input.Keyboard;
 
 public class KeyInputHandler {
 
+    public static KeyBinding listSpawnersKeyBinding;
+
+    public KeyInputHandler() {
+        // Args: unlocalized name, key code, unlocalized category
+        listSpawnersKeyBinding = new KeyBinding("key.listSpawnersKeyBinding", Keyboard.KEY_O, "key.categories.MobSpawnerFinder");
+
+        // Register to ClientRegistry
+        ClientRegistry.registerKeyBinding(listSpawnersKeyBinding);
+    }
+
     @SubscribeEvent
     public void onKeyInput(InputEvent.KeyInputEvent e) {
-        Minecraft mc = Minecraft.getMinecraft();
-        if (KeyBindings.listSpawnersKeyBinding.isPressed()) {
-            // list all currently loaded spawners
-            for (Object o : mc.theWorld.loadedTileEntityList) {
-                if (o.getClass() == TileEntityMobSpawner.class) {
-                    final TileEntityMobSpawner spawnerTileEntity = (TileEntityMobSpawner) o;
-                    final BlockPos spawnerPos = spawnerTileEntity.getPos();
-                    NBTTagCompound nbt = new NBTTagCompound();
-                    spawnerTileEntity.writeToNBT(nbt);
-                    final String entityId = nbt.getString("EntityId");
-                    mc.thePlayer.addChatMessage(new ChatComponentText(entityId + "-Spawner at " + spawnerPos));
-                }
-            }
+        if (KeyInputHandler.listSpawnersKeyBinding.isPressed()) {
+            MobSpawnerFinder.findSpawners(true);
         }
     }
 
