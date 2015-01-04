@@ -21,8 +21,7 @@ package gjum.minecraft.forge.MobSpawnerFinder;
 import net.minecraft.client.Minecraft;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntityMobSpawner;
-import net.minecraft.util.BlockPos;
-import net.minecraft.util.ChatComponentText;
+import net.minecraft.util.*;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.FMLCommonHandler;
 import net.minecraftforge.fml.common.Mod;
@@ -60,6 +59,8 @@ public class MobSpawnerFinder {
      */
     public static void findSpawners(boolean showKnown) {
         final Minecraft mc = Minecraft.getMinecraft();
+        if (mc == null || mc.theWorld == null || mc.theWorld.loadedTileEntityList == null)
+            return;
         for (Object o : mc.theWorld.loadedTileEntityList) {
             if (o.getClass() == TileEntityMobSpawner.class) {
                 final TileEntityMobSpawner spawnerTileEntity = (TileEntityMobSpawner) o;
@@ -71,13 +72,21 @@ public class MobSpawnerFinder {
                     NBTTagCompound nbt = new NBTTagCompound();
                     spawnerTileEntity.writeToNBT(nbt);
                     final String entityId = nbt.getString("EntityId");
-                    final ChatComponentText message = new ChatComponentText(String.format(
-                            "%d %3d %d %s spawner",
-                            spawnerPos.getX(), spawnerPos.getY(), spawnerPos.getZ(), entityId));
-                    mc.thePlayer.addChatMessage(message);
+                    mc.thePlayer.addChatMessage(getSpawnerFoundChatMessage(spawnerPos, entityId));
                 }
             }
         }
+    }
+
+    private static IChatComponent getSpawnerFoundChatMessage(BlockPos spawnerPos, String entityId) {
+        final IChatComponent coords = new ChatComponentText(String.format("%d %3d %d",
+                spawnerPos.getX(), spawnerPos.getY(), spawnerPos.getZ()))
+                .setChatStyle(new ChatStyle()
+                        .setColor(EnumChatFormatting.GRAY));
+        final IChatComponent chatMobType = new ChatComponentText(entityId)
+                .setChatStyle(new ChatStyle()
+                        .setColor(EnumChatFormatting.DARK_GREEN));
+        return coords.appendText(" ").appendSibling(chatMobType).appendText(" spawner");
     }
 
 }
