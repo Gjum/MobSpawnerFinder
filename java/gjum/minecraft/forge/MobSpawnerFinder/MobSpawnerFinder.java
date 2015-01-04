@@ -31,8 +31,8 @@ import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
-import java.util.LinkedList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 @Mod(modid = MobSpawnerFinder.MODID, name = MobSpawnerFinder.MODNAME, version = MobSpawnerFinder.VERSION, canBeDeactivated = true)
 public class MobSpawnerFinder {
@@ -41,7 +41,7 @@ public class MobSpawnerFinder {
     public static final String MODNAME = "MobSpawner finder";
     public static final String VERSION = "0.1";
 
-    static List<Object> foundSpawners = new LinkedList<Object>();
+    static Set<BlockPos> foundSpawners = new HashSet<BlockPos>();
 
     @SideOnly(Side.CLIENT)
     @EventHandler
@@ -62,18 +62,19 @@ public class MobSpawnerFinder {
         final Minecraft mc = Minecraft.getMinecraft();
         for (Object o : mc.theWorld.loadedTileEntityList) {
             if (o.getClass() == TileEntityMobSpawner.class) {
-                if (showKnown || !foundSpawners.contains(o)) {
-                    if (!showKnown) foundSpawners.add(o);
+                final TileEntityMobSpawner spawnerTileEntity = (TileEntityMobSpawner) o;
+                final BlockPos spawnerPos = spawnerTileEntity.getPos();
+                if (showKnown || !foundSpawners.contains(spawnerPos)) {
+                    if (!showKnown) foundSpawners.add(spawnerPos);
 
                     // tell player about newly found spawner
-                    final TileEntityMobSpawner spawnerTileEntity = (TileEntityMobSpawner) o;
-                    final BlockPos spawnerPos = spawnerTileEntity.getPos();
                     NBTTagCompound nbt = new NBTTagCompound();
                     spawnerTileEntity.writeToNBT(nbt);
                     final String entityId = nbt.getString("EntityId");
-                    mc.thePlayer.addChatMessage(new ChatComponentText(String.format(
-                            "%s spawner at %d %d",
-                            entityId, spawnerPos.getX(), spawnerPos.getZ())));
+                    final ChatComponentText message = new ChatComponentText(String.format(
+                            "%d %3d %d %s spawner",
+                            spawnerPos.getX(), spawnerPos.getY(), spawnerPos.getZ(), entityId));
+                    mc.thePlayer.addChatMessage(message);
                 }
             }
         }

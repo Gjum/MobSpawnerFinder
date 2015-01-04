@@ -42,7 +42,7 @@ public class ChunkWatchHandler {
     @SideOnly(Side.CLIENT)
     @SubscribeEvent
     public void on(ChunkEvent.Load e) {
-        MobSpawnerFinder.findSpawners(true);
+        MobSpawnerFinder.findSpawners(false);
     }
 
 }
